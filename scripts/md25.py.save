@@ -9,7 +9,6 @@ Thank you.
 Copyright 2017 Middlesex
 '''
 
-import time
 import i2c_wrapper
 import generic_functions
 
@@ -20,9 +19,6 @@ class MD25(object):
 
         # Set the mode of the controller
         self.set_mode(0)
-
-        # Set wheel speed to zero
-        self.set_wheel_speeds(0,0)
 
         # Enable speed regulation
         self.enable_speed_regulation(True)
@@ -36,7 +32,7 @@ class MD25(object):
     def __translate_value(self, value, low_threshold, high_threshold):
         '''Returns the right value based on the current mode'''
         self.get_mode()  # Gets the mode of the MD25
-        value = generic_functions.constrainf(value, low_threshold, high_threshold)
+        value = generic_functions.constrainf(speed, low_threshold, high_threshold)
 
         if self.mode == 0 or self.mode == 2:
             value = generic_functions.mapf(value, low_threshold, high_threshold, 0, 255)
@@ -66,20 +62,20 @@ class MD25(object):
         '''Sets the speed of both wheels to the speed'''
         self.get_mode()
 
-        self.left_speed = generic_functions.constrainf(left_speed+1, -100, 100)
-        self.right_speed = generic_functions.constrainf(right_speed+1, -100, 100)
+        self.left_speed = generic_functions.constrainf(left_speed, -100, 100)
+        self.right_speed = generic_functions.constrainf(right_speed, -100, 100)
 
         if (self.mode == 0) or (self.mode == 1):
-            left_value = self.__translate_value(self.left_speed, -100, 100)
-            right_value = self.__translate_value(self.right_speed, -100, 100)
+            left_value = self.__translate_value(self.left_speed)
+            right_value = self.__translate_value(self.right_speed)
             self.i2c_object.write(0, left_value)
             self.i2c_object.write(1, right_value)
         elif (self.mode == 2) or (self.mode == 3):
             if self.left_speed != self.right_speed:
                 raise ValueError("Both wheel speeds({1}, {2}) must be the same in this mode({0})".format(self.mode, self.left_speed, self.right_speed))
             else:
-                value = self.__translate_value(self.left_speed, -100, 100)
-                self.i2c_object.write(0, value)
+                value = self.__translate_value(self.left_speed)
+                self.i2c_object.write(0, left_value)
         else:
             raise ValueError("Invalid mode({0}) detected".format(self.mode))
 
@@ -91,6 +87,7 @@ class MD25(object):
 
         if self.mode == 0:
             left_speed_value_from_md25 = self.i2c_object.read_as_uint(0, 1)
+		
             left_speed_value_from_md25 = generic_functions.mapf(left_speed_value_from_md25, 0, 255, -100, 100)
 
             right_speed_value_from_md25 = self.i2c_object.read_as_uint(1, 1)
@@ -186,57 +183,12 @@ class MD25(object):
             self.i2c_object.write(16, 0x32)
 
 
-def delay(time_ms):
-    '''Delays for the given milliseconds'''
-    start_time = time.time()
-    while time.time() - start_time < (time_ms/1000.0):
-        pass
-
-def run_overall_test_routine():
-    my_md25 = MD25(0x58)
-
-    my_md25.set_wheel_speeds(100, -100)
-    delay(5000)
-    print "speed {0}".format(my_md25.get_wheel_speeds())
-    print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
-    print "version {0}".format(my_md25.get_software_version())
-    print "encoders {0}".format(my_md25.get_encoder_counts())
-    print "voltage {0}".format(my_md25.get_input_voltage())
-    print "current {0}".format(my_md25.get_motor_currents())
-
-    my_md25.set_wheel_speeds(50, -50)
-    delay(3000)
-
-    print "Stopping wheels"
-    my_md25.stop_wheels()
-
-    print "speed {0}".format(my_md25.get_wheel_speeds())
-    print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
-    print "version {0}".format(my_md25.get_software_version())
-    print "encoders {0}".format(my_md25.get_encoder_counts())
-    print "voltage {0}".format(my_md25.get_input_voltage())
-    print "current {0}".format(my_md25.get_motor_currents())
-
-    delay(1000)
-    my_md25.set_wheel_speeds(0,0)
-
-def run_write_test_routine():
-    my_md25 = MD25(0x58)
-
-    for j in xrange(0, 4):
-        print "Setting mode to {0}".format(j)
-        my_md25.set_mode(j)
-        delay(100)
-        print "Mode is {0}".format(my_md25.get_mode())
-        for i in xrange(-100, 101, 10):
-            print "setting speed to {0} units".format(i)
-            my_md25.set_wheel_speeds(i,i)
-            delay(300)
-            print "speed {0}".format(my_md25.get_wheel_speeds())
-        print "\n\n\n\n"
-    my_md25.set_mode(0)
-    my_md25.set_wheel_speeds(0,0)
 
 if __name__ == '__main__':
-    run_overall_test_routine()
-    run_write_test_routine()
+    my_md25 = MD25(0x58)
+    wheel_speeds = my_md25.get_wheel_speeds()
+    left_speed = wheel_speeds["left_speed"][1]
+    right_speed = wheel_speeds["right_speed"][1]
+
+    my_md25.set_wheel_speeds(100, -100)
+
