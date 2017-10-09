@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+'''
+This program was written by Chibuike Okpaluba and Marlon Gwira.
+
+For more information please contact <##>
+Thank you.
+
+Copyright 2017 Middlesex
+'''
+
 import i2c_wrapper
 import generic_functions
-
-# -- Possible functions --
-#toggle_speed_control
-#toggle_automatic_motor_timeout_after_2s
-#
 
 class MD25(object):
     def __init__(self, address=0xB0):
@@ -15,6 +19,15 @@ class MD25(object):
 
         # Set the mode of the controller
         self.set_mode(0)
+
+        # Enable speed regulation
+        self.enable_speed_regulation(True)
+
+        # Disable timeout
+        self.enable_timeout_after_2s(False)
+
+        # Reset encoders
+        self.reset_encoders()
 
     def __translate_value(self, value, low_threshold, high_threshold):
         '''Returns the right value based on the current mode'''
@@ -142,6 +155,7 @@ class MD25(object):
         return rate
 
     def change_address(self, new_address_index):
+        '''Sets the address of the md25 to the new address selected by the index'''
         possible_addresses = (0xB0, 0xB2, 0xB4, 0xB6, 0xB8, 0xBA, 0xBC, 0xBE)
         new_address_index = generic_functions.constrainf(new_address_index, 0, len(possible_addresses)-1)
         new_address = possible_addresses[new_address_index]
@@ -152,6 +166,20 @@ class MD25(object):
 
         self.address = new_address
         return self.address
+
+    def enable_speed_regulation(self, status=True):
+        '''Enables/Disables automatic speed regulation (default)'''
+        if status:
+            self.i2c_object.write(16, 0x31)
+        else:
+            self.i2c_object.write(16, 0x30)
+
+    def enable_timeout_after_2s(self, status=True):
+        '''Enables/Disables timeout of motors after 2 seconds when no I2C comms(default)'''
+        if status:
+            self.i2c_object.write(16, 0x33)
+        else:
+            self.i2c_object.write(16, 0x32)
 
 
 
