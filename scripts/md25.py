@@ -69,15 +69,15 @@ class MD25(object):
         self.right_speed = generic_functions.constrainf(right_speed, -100, 100)
 
         if (self.mode == 0) or (self.mode == 1):
-            left_value = self.__translate_value(self.left_speed)
-            right_value = self.__translate_value(self.right_speed)
+            left_value = self.__translate_value(self.left_speed, 0, 255)
+            right_value = self.__translate_value(self.right_speed, 0, 255)
             self.i2c_object.write(0, left_value)
             self.i2c_object.write(1, right_value)
         elif (self.mode == 2) or (self.mode == 3):
             if self.left_speed != self.right_speed:
                 raise ValueError("Both wheel speeds({1}, {2}) must be the same in this mode({0})".format(self.mode, self.left_speed, self.right_speed))
             else:
-                value = self.__translate_value(self.left_speed)
+                value = self.__translate_value(self.left_speed, -128, 127)
                 self.i2c_object.write(0, left_value)
         else:
             raise ValueError("Invalid mode({0}) detected".format(self.mode))
