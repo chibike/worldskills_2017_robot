@@ -26,8 +26,8 @@ class I2cObject(object):
 
 
 if __name__ == '__main__':
-	i2c_device = I2cObject(0x58)
-	print i2c_device.read(2, 4)
+    i2c_device = I2cObject(0x58)
+    print i2c_device.read(2, 4)
 
 
 # bus = smbus.SMBus(0)
