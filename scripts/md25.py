@@ -35,7 +35,7 @@ class MD25(object):
     def __translate_value(self, value, low_threshold, high_threshold):
         '''Returns the right value based on the current mode'''
         self.get_mode()  # Gets the mode of the MD25
-        value = generic_functions.constrainf(speed, low_threshold, high_threshold)
+        value = generic_functions.constrainf(value, low_threshold, high_threshold)
 
         if self.mode == 0 or self.mode == 2:
             value = generic_functions.mapf(value, low_threshold, high_threshold, 0, 255)
