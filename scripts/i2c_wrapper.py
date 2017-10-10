@@ -7,7 +7,7 @@ class I2cObject(object):
     def __init__(self, address):
         self.write_address = address
         self.read_address = address | 0x01
-        self.bus = smbus.SMBus(0)
+        self.bus = smbus.SMBus(1)
 
     def write(self, register, data):
         if isinstance(data, type(list)) or isinstance(data, type(tuple)):
