@@ -20,6 +20,9 @@ class MD25(object):
         # Set the mode of the controller
         self.set_mode(0)
 
+        # Set wheel speed to zero
+        self.set_wheel_speeds(0,0)
+
         # Enable speed regulation
         self.enable_speed_regulation(True)
 
