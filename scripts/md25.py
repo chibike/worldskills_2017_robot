@@ -13,7 +13,7 @@ import i2c_wrapper
 import generic_functions
 
 class MD25(object):
-    def __init__(self, address=0xB0):
+    def __init__(self, address=0x58):
         self.default_address = address
         self.i2c_object = i2c_wrapper.I2cObject(address)
 
@@ -184,7 +184,7 @@ class MD25(object):
 
 
 if __name__ == '__main__':
-    my_md25 = MD25()
+    my_md25 = MD25(0x58)
     wheel_speeds = my_md25.get_wheel_speeds()
     left_speed = wheel_speeds["left_speed"][1]
     right_speed = wheel_speeds["right_speed"][1]
