@@ -9,7 +9,7 @@ class I2cObject(object):
         self.bus = smbus.SMBus(1)
 
     def write(self, register, data):
-        if isinstance(data, type(list)) or isinstance(data, type(tuple)):
+        if isinstance(data, list) or isinstance(data, tuple):
         	self.bus.write_i2c_block_data(self.default_address, register, data)
         else:
         	self.bus.write_byte_data(self.default_address, register, data)
@@ -46,7 +46,7 @@ class I2cObject(object):
         return -1*(eval(temp_str))
 
     def concatenate(self, data):
-        if isinstance(data, type(list)) or isinstance(data, type(tuple)):
+        if isinstance(data, list) or isinstance(data, tuple):
             temp_str = "0x"
             for i in data:
                 temp_str = temp_str + hex(i)[2:]
