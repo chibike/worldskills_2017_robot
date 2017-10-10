@@ -51,7 +51,7 @@ class MD25(object):
 
     def get_mode(self):
         '''Returns the mode of the controller'''
-        self.mode = self.i2c_object.read(15, 1)
+        self.mode = self.i2c_object.read_as_uint(15, 1)
         return self.mode
 
     def stop_wheels(self):
@@ -86,26 +86,26 @@ class MD25(object):
         right_speed_value_from_md25 = 0
 
         if self.mode == 0:
-            left_speed_value_from_md25 = self.i2c_object.read(0, 1)
+            left_speed_value_from_md25 = self.i2c_object.read_as_uint(0, 1)
             left_speed_value_from_md25 = generic_functions.mapf(left_speed_value_from_md25, 0, 255, -100, 100)
 
-            right_speed_value_from_md25 = self.i2c_object.read(1, 1)
+            right_speed_value_from_md25 = self.i2c_object.read_as_uint(1, 1)
             right_speed_value_from_md25 = generic_functions.mapf(right_speed_value_from_md25, 0, 255, -100, 100)
         elif self.mode == 1:
             # TODO: fix sign errors
-            left_speed_value_from_md25 = self.i2c_object.read(0, 1)
+            left_speed_value_from_md25 = self.i2c_object.read_as_sint(0, 1)
             left_speed_value_from_md25 = generic_functions.mapf(left_speed_value_from_md25, -128, 127, -100, 100)
 
-            right_speed_value_from_md25 = self.i2c_object.read(1, 1)
+            right_speed_value_from_md25 = self.i2c_object.read_as_sint(1, 1)
             right_speed_value_from_md25 = generic_functions.mapf(right_speed_value_from_md25, -128, 127, -100, 100)
         elif self.mode == 2:
-            left_speed_value_from_md25 = self.i2c_object.read(0, 1)
+            left_speed_value_from_md25 = self.i2c_object.read_as_uint(0, 1)
             left_speed_value_from_md25 = generic_functions.mapf(left_speed_value_from_md25, 0, 255, -100, 100)
 
             right_speed_value_from_md25 = left_speed_value_from_md25
         elif self.mode == 3:
             # TODO: fix sign errors
-            left_speed_value_from_md25 = self.i2c_object.read(0, 1)
+            left_speed_value_from_md25 = self.i2c_object.read_as_sint(0, 1)
             left_speed_value_from_md25 = generic_functions.mapf(left_speed_value_from_md25, -128, 127, -100, 100)
 
             right_speed_value_from_md25 = left_speed_value_from_md25
@@ -120,8 +120,8 @@ class MD25(object):
     def get_encoder_counts(self):
         '''Returns the encoder counts for the wheels'''
         encoder_counts = dict()
-        encoder_counts["left_count"] = self.i2c_object.read(2, 4)
-        encoder_counts["right_count"] = self.i2c_object.read(6, 4)
+        encoder_counts["left_count"] = self.i2c_object.read_as_sint(2, 4)
+        encoder_counts["right_count"] = self.i2c_object.read_as_sint(6, 4)
         return encoder_counts
 
     def reset_encoders(self):
@@ -130,19 +130,19 @@ class MD25(object):
 
     def get_input_voltage(self):
         '''Returns the input voltage'''
-        input_voltage = self.i2c_object.read(10, 1)/10.0
+        input_voltage = self.i2c_object.read_as_uint(10, 1)/10.0
         return input_voltage
 
     def get_motor_currents(self):
         '''Returns the current of the motors'''
         motor_currents= dict()
-        motor_currents["left_current"] = self.i2c_object.read(11, 1)/10.0
-        motor_currents["right_current"] = self.i2c_object.read(12, 1)/10.0
+        motor_currents["left_current"] = self.i2c_object.read_as_uint(11, 1)/10.0
+        motor_currents["right_current"] = self.i2c_object.read_as_uint(12, 1)/10.0
         return motor_currents
 
     def get_software_version(self):
         '''Returns the software version of the md25'''
-        return self.i2c_object.read(13, 1)
+        return self.i2c_object.read_as_uint(13, 1)
 
     def set_acceleration_rate(self, rate):
         '''Sets the acceleration to one of 10 steps'''
@@ -151,7 +151,7 @@ class MD25(object):
 
     def get_acceleration_rate(self):
         '''Returns the acceleration rate'''
-        rate = self.i2c_object.read(14, 1)
+        rate = self.i2c_object.read_as_uint(14, 1)
         return rate
 
     def change_address(self, new_address_index):
@@ -188,4 +188,6 @@ if __name__ == '__main__':
     wheel_speeds = my_md25.get_wheel_speeds()
     left_speed = wheel_speeds["left_speed"][1]
     right_speed = wheel_speeds["right_speed"][1]
+
+    my_md25.set_wheel_speeds(100, -100)
 
