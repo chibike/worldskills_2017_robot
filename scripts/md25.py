@@ -9,6 +9,7 @@ Thank you.
 Copyright 2017 Middlesex
 '''
 
+import time
 import i2c_wrapper
 import generic_functions
 
@@ -185,6 +186,10 @@ class MD25(object):
             self.i2c_object.write(16, 0x32)
 
 
+def delay(time_sec):
+    start_time = time.time()
+    while time.time() - start_time < time_sec:
+        pass
 
 if __name__ == '__main__':
     my_md25 = MD25(0x58)
@@ -193,4 +198,27 @@ if __name__ == '__main__':
     right_speed = wheel_speeds["right_speed"][1]
 
     my_md25.set_wheel_speeds(100, -100)
+    delay(5000)
+    print "left_speed: {0} right_speed: {1}".format(left_speed, right_speed)
+    print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
+    print "version {0}".format(my_md25.get_software_version())
+    print "encoders {0}".format(my_md25.get_encoder_counts())
+    print "voltage {0}".format(my_md25.get_input_voltage())
+    print "current {0}".format(my_md25.get_motor_currents())
+
+    my_md25.set_wheel_speeds(50, -50)
+    delay(3000)
+
+    print "Stopping wheels"
+    my_md25.stop_wheels()
+
+    print "speed {0}".format(my_md25.get_wheel_speeds())
+    print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
+    print "version {0}".format(my_md25.get_software_version())
+    print "encoders {0}".format(my_md25.get_encoder_counts())
+    print "voltage {0}".format(my_md25.get_input_voltage())
+    print "current {0}".format(my_md25.get_motor_currents())
+
+    delay(1000)
+    my_md25.set_wheel_speeds(0,0)
 
