@@ -30,7 +30,7 @@ class I2cObject(object):
             hex_string = hex_string + hex(i)[2:]
         return self.get_int(hex_string)
 
-    def get_int(hex_string):
+    def get_int(self, hex_string):
         binary_string = bin(eval(hex_string))[2:]
         binary_string = "0" * (len(hex_string[2:])*4 - len(binary_string)) + binary_string
         if binary_string[0] == '0':
