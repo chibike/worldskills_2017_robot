@@ -57,8 +57,8 @@ class I2cObject(object):
 
 if __name__ == '__main__':
     i2c_device = I2cObject(0x58)
-    print "left_encoder = {0}".i2c_device.read_as_sint(2, 4)
-    print "right_encoder = {0}".i2c_device.read_as_sint(6, 4)
+    print "left_encoder = {0}".format(i2c_device.read_as_sint(2, 4))
+    print "right_encoder = {0}".format(i2c_device.read_as_sint(6, 4))
 
 
 # bus = smbus.SMBus(0)
