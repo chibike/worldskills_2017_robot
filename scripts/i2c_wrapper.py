@@ -17,7 +17,7 @@ class I2cObject(object):
     def read(self, register, howmany):
         data = []
         for i in xrange(howmany):
-            data.append(self.bus.read_byte_data(self.address, register+i))
+            data.append(self.bus.read_byte_data(self.default_address, register+i))
         return data
 
 
