@@ -5,8 +5,7 @@ import time
 
 class I2cObject(object):
     def __init__(self, address):
-        self.write_address = address
-        self.read_address = address | 0x01
+        self.default_address = address
         self.bus = smbus.SMBus(1)
 
     def write(self, register, data):
@@ -16,12 +15,9 @@ class I2cObject(object):
         	pass
 
     def read(self, register, howmany):
-        self.bus.write_byte(self.read_address, register)
-
         data = []
         for i in xrange(howmany):
-        	data.append(self.bus.read_byte(self.read_address))
-
+            data.append(self.bus.read_byte_data(self.address, register+i))
         return data
 
 
