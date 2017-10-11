@@ -186,16 +186,16 @@ class MD25(object):
             self.i2c_object.write(16, 0x32)
 
 
-def delay(time_sec):
+def delay(time_ms):
     start_time = time.time()
-    while time.time() - start_time < time_sec:
+    while time.time() - start_time < (time_ms/1000.0):
         pass
 
 def run_overall_test_routine():
     my_md25 = MD25(0x58)
 
     my_md25.set_wheel_speeds(100, -100)
-    delay(5)
+    delay(5000)
     print "speed {0}".format(my_md25.get_wheel_speeds())
     print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
     print "version {0}".format(my_md25.get_software_version())
@@ -204,7 +204,7 @@ def run_overall_test_routine():
     print "current {0}".format(my_md25.get_motor_currents())
 
     my_md25.set_wheel_speeds(50, -50)
-    delay(3)
+    delay(3000)
 
     print "Stopping wheels"
     my_md25.stop_wheels()
@@ -216,7 +216,7 @@ def run_overall_test_routine():
     print "voltage {0}".format(my_md25.get_input_voltage())
     print "current {0}".format(my_md25.get_motor_currents())
 
-    delay(1)
+    delay(1000)
     my_md25.set_wheel_speeds(0,0)
 
 def run_write_test_routine():
