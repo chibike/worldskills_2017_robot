@@ -222,11 +222,15 @@ def run_overall_test_routine():
 def run_write_test_routine():
     my_md25 = MD25(0x58)
 
-    for i in xrange(-100, 100):
-        my_md25.set_wheel_speeds(i,i)
-        print "setting speed to {0} units".format(i)
-        delay(200)
-        print "speed {0}".format(my_md25.get_wheel_speeds())
+    for j in xrange(0, 4):
+        print "Setting mode to {0}".format(j)
+        my_md25.set_mode(i)
+        for i in xrange(-100, 101, 10):
+            my_md25.set_wheel_speeds(i,i)
+            print "setting speed to {0} units".format(i)
+            delay(200)
+            print "speed {0}".format(my_md25.get_wheel_speeds())
+        print "\n\n\n\n"
 
 if __name__ == '__main__':
     #run_overall_test_routine()
