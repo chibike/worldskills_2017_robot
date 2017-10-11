@@ -220,6 +220,8 @@ def run_overall_test_routine():
     my_md25.set_wheel_speeds(0,0)
 
 def run_write_test_routine():
+    my_md25 = MD25(0x58)
+    
     for i in xrange(-100, 100):
         my_md25.set_wheel_speeds(0,0)
         print "setting speed to {0} units".format(i)
