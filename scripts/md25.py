@@ -70,15 +70,15 @@ class MD25(object):
         self.right_speed = generic_functions.constrainf(right_speed, -100, 100)
 
         if (self.mode == 0) or (self.mode == 1):
-            left_value = self.__translate_value(self.left_speed, 0, 255)
-            right_value = self.__translate_value(self.right_speed, 0, 255)
+            left_value = self.__translate_value(self.left_speed, -100, 100)
+            right_value = self.__translate_value(self.right_speed, -100, 100)
             self.i2c_object.write(0, left_value)
             self.i2c_object.write(1, right_value)
         elif (self.mode == 2) or (self.mode == 3):
             if self.left_speed != self.right_speed:
                 raise ValueError("Both wheel speeds({1}, {2}) must be the same in this mode({0})".format(self.mode, self.left_speed, self.right_speed))
             else:
-                value = self.__translate_value(self.left_speed, -128, 127)
+                value = self.__translate_value(self.left_speed, -100, 100)
                 self.i2c_object.write(0, left_value)
         else:
             raise ValueError("Invalid mode({0}) detected".format(self.mode))
@@ -193,13 +193,10 @@ def delay(time_sec):
 
 if __name__ == '__main__':
     my_md25 = MD25(0x58)
-    wheel_speeds = my_md25.get_wheel_speeds()
-    left_speed = wheel_speeds["left_speed"][1]
-    right_speed = wheel_speeds["right_speed"][1]
 
     my_md25.set_wheel_speeds(100, -100)
-    delay(5000)
-    print "left_speed: {0} right_speed: {1}".format(left_speed, right_speed)
+    delay(5)
+    print "speed {0}".format(my_md25.get_wheel_speeds())
     print "acceleration_rate {0}".format(my_md25.get_acceleration_rate())
     print "version {0}".format(my_md25.get_software_version())
     print "encoders {0}".format(my_md25.get_encoder_counts())
@@ -207,7 +204,7 @@ if __name__ == '__main__':
     print "current {0}".format(my_md25.get_motor_currents())
 
     my_md25.set_wheel_speeds(50, -50)
-    delay(3000)
+    delay(3)
 
     print "Stopping wheels"
     my_md25.stop_wheels()
@@ -219,6 +216,5 @@ if __name__ == '__main__':
     print "voltage {0}".format(my_md25.get_input_voltage())
     print "current {0}".format(my_md25.get_motor_currents())
 
-    delay(1000)
+    delay(1)
     my_md25.set_wheel_speeds(0,0)
-
