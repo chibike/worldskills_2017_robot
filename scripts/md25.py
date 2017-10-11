@@ -41,7 +41,7 @@ class MD25(object):
         if self.mode == 0 or self.mode == 2:
             value = generic_functions.mapf(value, low_threshold, high_threshold, 0, 255)
         elif self.mode == 1 or self.mode == 3:
-            value = generic_functions.mapf(value, low_threshold, high_threshold, -128, 127)
+            value = generic_functions.mapf(value, low_threshold, high_threshold, -127, 127)
         else:
             raise ValueError("Invalid mode({0}) detected.".format(mode))
 
