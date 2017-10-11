@@ -12,7 +12,7 @@ class I2cObject(object):
         if isinstance(data, list) or isinstance(data, tuple):
         	self.bus.write_i2c_block_data(self.default_address, register, data)
         else:
-        	self.bus.write_byte_data(self.default_address, register, data)
+        	self.bus.write_byte_data(self.default_address, register, int(data))
 
     def read(self, register, howmany):
         data = []
