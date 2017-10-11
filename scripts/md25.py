@@ -191,7 +191,7 @@ def delay(time_sec):
     while time.time() - start_time < time_sec:
         pass
 
-if __name__ == '__main__':
+def run_overall_test_routine():
     my_md25 = MD25(0x58)
 
     my_md25.set_wheel_speeds(100, -100)
@@ -218,3 +218,13 @@ if __name__ == '__main__':
 
     delay(1)
     my_md25.set_wheel_speeds(0,0)
+
+def run_write_test_routine():
+    for i in xrange(-100, 100):
+        my_md25.set_wheel_speeds(0,0)
+        print "setting speed to {0} units".format(i)
+        print "speed {0}".format(my_md25.get_wheel_speeds())
+
+if __name__ == '__main__':
+    #run_overall_test_routine()
+    run_write_test_routine()
