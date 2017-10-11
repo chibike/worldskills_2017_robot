@@ -224,7 +224,7 @@ def run_write_test_routine():
 
     for j in xrange(0, 4):
         print "Setting mode to {0}".format(j)
-        my_md25.set_mode(i)
+        my_md25.set_mode(j)
         for i in xrange(-100, 101, 10):
             my_md25.set_wheel_speeds(i,i)
             print "setting speed to {0} units".format(i)
