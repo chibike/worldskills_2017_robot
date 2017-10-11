@@ -79,7 +79,7 @@ class MD25(object):
                 raise ValueError("Both wheel speeds({1}, {2}) must be the same in this mode({0})".format(self.mode, self.left_speed, self.right_speed))
             else:
                 value = self.__translate_value(self.left_speed, -100, 100)
-                self.i2c_object.write(0, left_value)
+                self.i2c_object.write(0, value)
         else:
             raise ValueError("Invalid mode({0}) detected".format(self.mode))
 
