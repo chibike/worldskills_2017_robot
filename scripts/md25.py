@@ -187,6 +187,7 @@ class MD25(object):
 
 
 def delay(time_ms):
+    '''Delays for the given milliseconds'''
     start_time = time.time()
     while time.time() - start_time < (time_ms/1000.0):
         pass
