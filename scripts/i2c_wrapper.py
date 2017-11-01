@@ -12,9 +12,9 @@ class I2cObject(object):
     def write(self, register, data):
         '''Write an array/list or int to an I2C device'''
         if isinstance(data, list) or isinstance(data, tuple):
-        	self.bus.write_i2c_block_data(self.default_address, register, data)
+            self.bus.write_i2c_block_data(self.default_address, register, data)
         else:
-        	self.bus.write_byte_data(self.default_address, register, int(data))
+            self.bus.write_byte_data(self.default_address, register, int(data))
 
     def read(self, register, howmany):
         '''Returns an array containing [howmany] data elements read from selected register'''

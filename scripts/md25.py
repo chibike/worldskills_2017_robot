@@ -16,10 +16,23 @@ import generic_functions
 class MD25(object):
     def __init__(self, address=0x58):
         self.default_address = address
-        self.i2c_object = i2c_wrapper.I2cObject(address)
+        self.i2c_object      = i2c_wrapper.I2cObject(address)
+
+        # Initialize variables to track changes in encoder counts
+        self.motor_direction_left     = 0
+        self.motor_direction_right    = 0
+
+        self.last_encoder_count_left  = 0
+        self.last_encoder_count_right = 0
+
+        self.displacement_left        = 0
+        self.displacement_right       = 0
 
         # Set the mode of the controller
         self.set_mode(0)
+
+        # Set wheel accerelation rate to 10
+        self.set_acceleration_rate(10)
 
         # Set wheel speed to zero
         self.set_wheel_speeds(0,0)
@@ -28,7 +41,7 @@ class MD25(object):
         self.enable_speed_regulation(True)
 
         # Disable timeout
-        self.enable_timeout_after_2s(False)
+        self.enable_timeout_after_2s(True)
 
         # Reset encoders
         self.reset_encoders()
@@ -60,14 +73,19 @@ class MD25(object):
 
     def stop_wheels(self):
         '''Stops the wheels'''
+        self.motor_direction_left  = 0
+        self.motor_direction_right = 0
         self.set_wheel_speeds(0,0)
 
     def set_wheel_speeds(self, left_speed, right_speed):
         '''Sets the speed of both wheels to the speed'''
         self.get_mode()
 
-        self.left_speed = generic_functions.constrainf(left_speed+1, -100, 100)
-        self.right_speed = generic_functions.constrainf(right_speed+1, -100, 100)
+        self.left_speed  = generic_functions.constrainf(left_speed  + 1, -100, 100)
+        self.right_speed = generic_functions.constrainf(right_speed + 1, -100, 100)
+
+        self.motor_direction_left  = self.left_speed  / abs(self.left_speed)
+        self.motor_direction_right = self.right_speed / abs(self.right_speed)
 
         if (self.mode == 0) or (self.mode == 1):
             left_value = self.__translate_value(self.left_speed, -100, 100)
@@ -82,7 +100,6 @@ class MD25(object):
                 self.i2c_object.write(0, value)
         else:
             raise ValueError("Invalid mode({0}) detected".format(self.mode))
-
 
     def get_wheel_speeds(self):
         '''Returns the speed of the wheels'''
@@ -119,17 +136,46 @@ class MD25(object):
         wheel_speeds = dict()
         wheel_speeds["left_speed"] = (left_speed_value_from_md25, self.left_speed)
         wheel_speeds["right_speed"] = (right_speed_value_from_md25, self.right_speed)
+
         return wheel_speeds
 
     def get_encoder_counts(self):
         '''Returns the encoder counts for the wheels'''
+        # Create a dictionary to store the values
         encoder_counts = dict()
-        encoder_counts["left_count"] = self.i2c_object.read_as_sint(2, 4)
+
+        # Store the encoder counts for each wheel
+        encoder_counts["left_count"]  = self.i2c_object.read_as_sint(2, 4)
         encoder_counts["right_count"] = self.i2c_object.read_as_sint(6, 4)
+
+        # Calculate displacement for each wheel
+        displacement_diff_left  = abs(encoder_counts["left_count"]  - self.last_encoder_count_left)
+        displacement_diff_right = abs(encoder_counts["right_count"] - self.last_encoder_count_right)
+
+        # Determine displacement direction based on motor direction and increament accordingly
+        self.displacement_left  += displacement_diff_left  * self.motor_direction_left
+        self.displacement_right += displacement_diff_right * self.motor_direction_right
+
+        # Update the last encoder count variables
+        self.last_encoder_count_left  = encoder_counts["left_count"]
+        self.last_encoder_count_right = encoder_counts["right_count"]
+
+        # Store displacements in dictionary
+        encoder_counts["left_displacement"]  = self.displacement_left
+        encoder_counts["right_displacement"] = self.displacement_right
+
+        # Return dictionary
         return encoder_counts
 
     def reset_encoders(self):
         '''Resets the encoders'''
+        self.motor_direction_left      = 0
+        self.motor_direction_right     = 0
+        self.last_encoder_count_left   = 0
+        self.right_encoder_count_right = 0
+        self.left_displacement         = 0
+        self.right_displacement        = 0
+
         self.i2c_object.write(16, 0x20)
 
     def get_input_voltage(self):

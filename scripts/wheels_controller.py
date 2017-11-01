@@ -14,14 +14,13 @@ class WheelsDataMessenger(object):
 		self.odometry_publisher = rospy.Publisher('odom', Odometry, queue_size=50)
 		self.odometry_broadcaster = tf.TransformBroadcaster()
 
-		# Do not add make the node anonymous, there should only one instance
-		# running at a time
+		# Do not add {make the node anonymous}, only one instance at a time is required
 		rospy.init_node('wheels_data_messenger', anonymous=False)
 
 		self.rate = rospy.Rate(5)
 		self.md25 = md25.MD25(i2c_address)
 
-		self.x, self.y, self.th = 0.0
+		self.x = self.y = self.th = 0.0
 
 		self.vx = 0.1
 		self.vy = -0.1
@@ -35,6 +34,8 @@ class WheelsDataMessenger(object):
 		self.encoder_counts_per_rev = float(encoder_counts_per_rev)
 		self.encoder_counts_to_distance_multiplier = self.wheel_diameter_m * math.pi / self.encoder_counts_per_rev
 
+		rospy.on_shutdown(self.shutdown)
+
 	def run(self):
 		while not rospy.is_shutdown():
 			self.publish_odometry()
@@ -47,48 +48,61 @@ class WheelsDataMessenger(object):
 		self.update_velocities(*self.get_encoder_counts_in_m())
 
 		# Computer odometry using the velocites of the robot
-		dt = (current_time - last_time).to_sec()
-		delta_x = (vx * cos(th) - vy * sin(th)) * dt
-		delta_y = (vx * sin(th) + vy * cos(th)) * dt
-		delta_th = vth * dt
+		dt = (self.current_time - self.last_time).to_sec()
+		delta_x = (self.vx * cos(self.th) - self.vy * sin(self.th)) * dt
+		delta_y = (self.vx * sin(self.th) + self.vy * cos(self.th)) * dt
+		delta_th = self.vth * dt
 
 		self.x += delta_x
 		self.y += delta_y
 		self.th += delta_th
 
 		# Since all odometry is 6DOF create quaternion from yaw
-		odom_quat = tf.transformations.quaternion_from_euler(0,0,th)
+		odom_quat = tf.transformations.quaternion_from_euler(0,0,self.th)
 
 		# Publish the transform over tf
-		self.odometry_broadcaster.sendTransfrom(
+		self.odometry_broadcaster.sendTransform(
 				(self.x, self.y, 0.0),
 				odom_quat,
-				current_time,
+				self.current_time,
 				"base_link",
 				"odom"
 			)
 
 		# Setup odometry header
 		odom = Odometry()
-		odom.header.stamp = current_time
+		odom.header.stamp = self.current_time
 		odom.header.frame_id = "odom"
 
 		# Setup odometry position
-		odom.pose.pose = Pose(Point(x, y, 0.0), Quaternion(*odom_quat))
+		odom.pose.pose = Pose(Point(self.x, self.y, 0.0), Quaternion(*odom_quat))
 
 		# Setup odometry velocity
 		odom.child_frame_id = "base_link"
-		odom.twist.twist = Twist(Vector3(vx, vy, 0), Vector3(0, 0, vth))
+		odom.twist.twist = Twist(Vector3(self.vx, self.vy, 0), Vector3(0, 0, self.vth))
 
 		# Publish message
 		self.odometry_publisher.publish(odom)
 
 		# Update time
-		last_time = current_time
+		self.last_time = self.current_time
 		self.rate.sleep()
 
-	def set_wheel_speed_callback(self):
-		pass
+	def subscribe_to_teleop_controls(self):
+		topic_name = "/cmd_vel_mux/input/teleop"
+		topic_type = "geometry_msgs/Twist"
+
+		rospy.Subscriber(topic_name, Twist, self.teleop_callback)
+
+	def teleop_callback(self, data):
+		speed = data.linear.x
+		rotation = data.angular.z
+
+		left_wheel_speed = (speed * self.wheelbase_diameter_in_m)/2 + speed
+		right_wheel_speed = (speed * 2) - left_wheel_speed
+
+		self.set_wheel_speeds(left_wheel_speed, right_wheel_speed)
+		
 
 	def update_velocities(self, left_encoder_counts_in_m, right_encoder_counts_in_m):
 		right_left = (right_encoder_counts_in_m - left_encoder_counts_in_m)
@@ -101,9 +115,9 @@ class WheelsDataMessenger(object):
 		self.vth = fraction
 
 	def get_encoder_counts_in_m(self):
-		encoder_counts = self.get_encoder_counts()
-		left_counts = encoder_counts["left_counts"]
-		right_counts = encoder_counts["right_counts"]
+		encoder_counts = self.md25.get_encoder_counts()
+		left_counts = encoder_counts["left_count"]
+		right_counts = encoder_counts["right_count"]
 
 		# convert encoder counts to millimeters
 		left_distance_travelled_m = left_counts * self.encoder_counts_to_distance_multiplier
@@ -114,10 +128,20 @@ class WheelsDataMessenger(object):
 	def set_wheel_speeds(self, left_speed, right_speed):
 		self.md25.set_wheel_speeds(left_speed, right_speed)
 
+	def shutdown(self):
+		self.set_wheel_speeds(0,0)
+
 
 if __name__ == "__init__":
+	msger = WheelsDataMessenger()
+	msger.subscribe_to_teleop_controls()
+	msger.run()
+
 	try:
-		msger = WheelsDataMessenger()
-		msger.run()
+		pass
 	except rospy.ROSInterruptException:
 		pass
+else:
+	msger = WheelsDataMessenger()
+	msger.subscribe_to_teleop_controls()
+	msger.run()
