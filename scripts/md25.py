@@ -145,20 +145,50 @@ class MD25(object):
         encoder_counts = dict()
 
         # Store the encoder counts for each wheel
-        encoder_counts["left_count"]  = self.i2c_object.read_as_sint(2, 4)
-        encoder_counts["right_count"] = self.i2c_object.read_as_sint(6, 4)
+        l = 0; r = 0; x = 1.0
+        for i in xrange(int(x)):
+            l += self.i2c_object.read_as_sint(2, 4)
+            r += self.i2c_object.read_as_sint(6, 4)
+        
+        encoder_counts["left_count"]  = l/x
+        encoder_counts["right_count"] = r/x
 
         # Calculate displacement for each wheel
-        displacement_diff_left  = abs(encoder_counts["left_count"]  - self.last_encoder_count_left)
-        displacement_diff_right = abs(encoder_counts["right_count"] - self.last_encoder_count_right)
+        displacement_diff_left  = encoder_counts["left_count"]  - self.last_encoder_count_left
+        displacement_diff_right = encoder_counts["right_count"] - self.last_encoder_count_right
 
-        # Determine displacement direction based on motor direction and increament accordingly
-        self.displacement_left  += displacement_diff_left  * self.motor_direction_left
-        self.displacement_right += displacement_diff_right * self.motor_direction_right
+        left_reading_is_reliable  = False
+        right_reading_is_reliable = False
 
-        # Update the last encoder count variables
-        self.last_encoder_count_left  = encoder_counts["left_count"]
-        self.last_encoder_count_right = encoder_counts["right_count"]
+        try:
+            if self.motor_direction_left == displacement_diff_left: # Handle zeros
+                left_reading_is_reliable = True
+            elif self.motor_direction_left == displacement_diff_left/abs(displacement_diff_left):
+                left_reading_is_reliable = True
+        except ZeroDivisionError as e:
+            pass
+
+        try:
+            if  self.motor_direction_right == displacement_diff_right: # Handle zeros
+                right_reading_is_reliable = True
+            elif self.motor_direction_right == displacement_diff_right/abs(displacement_diff_right):
+                right_reading_is_reliable = True
+        except ZeroDivisionError as e:
+            pass
+
+        if left_reading_is_reliable or abs(self.last_encoder_count_left) >= 64095:
+            # Determine displacement direction based on motor direction and increament accordingly
+            self.displacement_left  += displacement_diff_left
+            
+            # Update the last encoder count variables
+            self.last_encoder_count_left  = encoder_counts["left_count"]
+
+        if right_reading_is_reliable or abs(self.last_encoder_count_right) >= 64095:
+            # Determine displacement direction based on motor direction and increament accordingly
+            self.displacement_right += displacement_diff_right
+            
+            # Update the last encoder count variables
+            self.last_encoder_count_right = encoder_counts["right_count"]
 
         # Store displacements in dictionary
         encoder_counts["left_displacement"]  = self.displacement_left
@@ -283,6 +313,15 @@ def run_write_test_routine():
     my_md25.set_mode(0)
     my_md25.set_wheel_speeds(0,0)
 
+def run_odometry_test():
+    my_md25 = MD25(0x58)
+    my_md25.motor_direction_left  = -1.0
+    my_md25.motor_direction_right = +1.0
+    while True:
+        print "Encoder counts {0}".format(my_md25.get_encoder_counts())
+        time.sleep(0.1)
+
 if __name__ == '__main__':
-    run_overall_test_routine()
-    run_write_test_routine()
+    #run_overall_test_routine()
+    #run_write_test_routine()
+    run_odometry_test()

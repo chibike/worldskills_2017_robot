@@ -53,8 +53,8 @@ class RobotObject(object):
 
 		# Setup pull to start pin
 		GPIO.setmode(GPIO.BCM)
-		GPIO.setup(self.start_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(self.start_pin, GPIO.FALLING)
+		GPIO.setup(self.start_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+		GPIO.add_event_detect(self.start_pin, GPIO.RISING)
 		GPIO.add_event_callback(self.start_pin, self.start_btn_callback)
 
 		# Setup md25
@@ -69,6 +69,7 @@ class RobotObject(object):
 		try:
 			data = self.wheels_controller.get_encoder_counts()
 			time_now = time.time() # Get time
+			print "Encoder Counts: {0}  @ {1}s".format(data, time_now)
 		except Exception as e:
 			print "Error[{0}] when reading encoder counts".format(e)
 			return
